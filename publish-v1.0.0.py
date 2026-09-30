@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""publish-v1.0.0.py — انشر إصدار Tabib AI v1.0.0 على GitHub.
+"""publish-v1.0.0.py — انشر إصدار Tabib AI (الحالي: v1.1.0) على GitHub.
 
 الاستخدام:
     GH_TOKEN=github_pat_xxx python3 publish-v1.0.0.py
@@ -9,7 +9,7 @@
 ما الذي يفعله:
   1) يتحقق من صلاحية التوكن وصلاحية الكتابة على المستودع.
   2) يحدّث ملفات المستودع (الكود المصدري + الـ Zip المصدري) عبر Contents API.
-  3) ينشئ الإصدار v1.0.0 ويرفع الأصول الكبيرة (المثبّت، Zip المصدر، SHA256SUMS).
+  3) ينشئ الإصدار ويرفع الأصول الكبيرة (المثبّت، Zip المصدر، SHA256SUMS).
   4) يتحقق من الأسماء والأحجام وروابط التنزيل النهائية.
 
 التوكن المطلوب: Fine-grained PAT على مستودع tabib-ai بصلاحية
@@ -30,8 +30,8 @@ import urllib.parse
 import urllib.request
 
 REPO = "nighttrix03-crypto/tabib-ai"
-TAG = "v1.0.0"
-RELEASE_NAME = "طبيب AI v1.0.0"
+TAG = "v1.1.0"
+RELEASE_NAME = "طبيب AI v1.1.0"
 API = "https://api.github.com"
 UPLOADS = "https://uploads.github.com"
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -51,16 +51,18 @@ REPO_FILES = [
     "build-installer.ps1",
     "publish-v1.0.0.py",
     "publish.sh",
-    "release-files/RELEASE-NOTES-v1.0.0.md",
-    "release-files/SHA256SUMS-v1.0.0.txt",
+    "release-files/RELEASE-NOTES-v1.1.0.md",
+    "release-files/SHA256SUMS-v1.1.0.txt",
 ]
 
 # أصول الإصدار => تُرفع كمرفقات release (لا حد 100MB هنا)
 ASSETS = [
     "installer/dist/TabibAI-Setup.exe",
     "dist/TabibAI.exe",
+    "tabib-ai_1.1.0-1_amd64.deb",
+    "release-files/gemma2-2b.gguf",
     "TabibAI-source.zip",
-    "release-files/SHA256SUMS-v1.0.0.txt",
+    "release-files/SHA256SUMS-v1.1.0.txt",
 ]
 
 DRY_RUN = False
