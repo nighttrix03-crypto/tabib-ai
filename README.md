@@ -16,7 +16,7 @@
 Get-FileHash .\TabibAI-Setup.exe -Algorithm SHA256
 ```
 
-قارن الناتج بسطر `TabibAI-Setup.exe` في ملف `SHA256SUMS-v1.0.0.txt` المرفق مع الإصدار. كما يتوفر `TabibAI.exe` وحده لمن يريد التشغيل دون مثبّت، و`TabibAI-source.zip` للكود المصدري.
+قارن الناتج بسطر `TabibAI-Setup.exe` في ملف `SHA256SUMS-v1.1.0.txt` المرفق مع الإصدار. كما يتوفر `TabibAI.exe` وحده لمن يريد التشغيل دون مثبّت، و`TabibAI-source.zip` للكود المصدري.
 
 ## الموقع
 
