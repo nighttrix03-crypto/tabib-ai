@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
 using FellowOakDicom;
@@ -690,6 +691,12 @@ internal sealed class MainForm : Form
             + "اتبع مبدأ السلامة: عند علامة خطر محتملة، ابدأ بتوجيه واضح لطلب المساعدة العاجلة ولا تؤخره بالأسئلة. "
             + "لا تقدّم تشخيصاً نهائياً، ولا خطة علاج، ولا وصفة أو جرعات دوائية. لا تقل إن الحالة سليمة أو خطيرة على نحو جازم من بيانات ناقصة. "
             + "لا تختلق نتائج أو مراجع أو نسب دقة. إذا تعذّر الاستنتاج فقل ذلك صراحة. حافظ على السرية ولا تطلب اسم المريض أو رقم هويته. "
+            + "الإسعافات الأولية غير الدوائية مسموحة ومطلوبة عند الطوارئ ولا تعدّ وصفة علاجية. "
+            + "عند وجود خطر فوري أو عند بُعد المسافة عن المستشفى أو صعوبة الوصول إليه: لا تكتفِ بجملة «راجع الطبيب» أو «استشر مختصاً» وحدها. "
+            + "قدّم أولاً الإسعافات الأولية الآمنة خطوة بخطوة (ما يمكن فعله الآن وما يجب تجنّبه)، ثم وجّه المستخدم للاتصال بالإسعاف "
+            + "ورقم الطوارئ المحلي في بلده (مثال: 1122 في الجزائر، 15 في المغرب، 997 في السعودية، 123 في مصر، 998 في الإمارات) "
+            + "إلى أقرب مركز صحي، مع شرح ما يجب فعله أثناء الانتظار أو النقل. وضّح أن ذلك إسعاف أولي لا يغني عن تقييم مختص. "
+            + "لا تبدأ الرد بالنصيحة العامة عند وجود إجراء عاجل آمن يمكن تنفيذه فوراً. "
             + domainInstructions + "\n\n"
             + "نسّق الرد بعناوين قصيرة: ١) ملخص المعلومات، ٢) ما يمكن ملاحظته أو فهمه، ٣) احتمالات عامة مع مستوى يقين منخفض أو متوسط فقط وسبب عدم اليقين، ٤) معلومات ناقصة وأسئلة للمختص، ٥) متى يلزم طلب مساعدة عاجلة إن كان السياق يدعم ذلك. "
             + "لا تستخدم لغة مخيفة أو واثقة أكثر مما تسمح به البيانات."
@@ -707,21 +714,64 @@ internal sealed class MainForm : Form
         return true;
     }
 
+    /// <summary>تطبيع عربي: يزيل الهمزات والتشكيل لتقارب الصيغ (ألم/الم، راس/رأس) مطابقاً للنسخة اللينكسية.</summary>
+    private static string NormalizeArabic(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        var builder = new StringBuilder(value.Length);
+        foreach (var ch in value.ToLowerInvariant())
+        {
+            switch (ch)
+            {
+                case 'أ': case 'إ': case 'آ': case 'ٱ': builder.Append('ا'); break;
+                case 'ء': case 'ـ': case '\u064B': case '\u064C': case '\u064D':
+                case '\u064E': case '\u064F': case '\u0650': case '\u0651': case '\u0652': break;
+                case 'ؤ': builder.Append('و'); break;
+                case 'ئ': builder.Append('ي'); break;
+                case 'ى': builder.Append('ي'); break;
+                default: builder.Append(ch); break;
+            }
+        }
+        return Regex.Replace(builder.ToString(), "\\s+", " ");
+    }
+
     private string DetectUrgentWarning()
     {
-        var text = $"{concernBox.Text} {historyBox.Text} {resultsBox.Text}".ToLowerInvariant();
+        var raw = $"{concernBox.Text} {historyBox.Text} {resultsBox.Text}".ToLowerInvariant();
+        var text = NormalizeArabic(raw);
         var redFlags = new (string[] Terms, string Reason)[]
         {
-            (new[] { "ألم صدر", "الم في الصدر", "ضغط الصدر", "chest pain" }, "ألم أو ضغط في الصدر"),
+            (new[] { "ألم صدر", "الم في الصدر", "الم صدر", "ألم في الصدر", "ألم بالصدر", "الم بالصدر", "ضغط الصدر", "ثقل الصدر", "chest pain" }, "ألم أو ضغط في الصدر"),
             (new[] { "ضيق تنفس", "صعوبة التنفس", "لا أستطيع التنفس", "shortness of breath" }, "صعوبة في التنفس"),
             (new[] { "إغماء", "اغماء", "فاقد الوعي", "فقدان الوعي", "unconscious" }, "فقدان الوعي أو إغماء"),
             (new[] { "شلل", "ضعف مفاجئ", "تدلي الوجه", "تلعثم", "سكتة" }, "أعراض عصبية مفاجئة"),
             (new[] { "انتحار", "أقتل نفسي", "اقتل نفسي", "إيذاء نفسي", "suicide" }, "خطر إيذاء النفس"),
-            (new[] { "نزيف شديد", "ينزف بشدة", "قيء دم", "براز أسود", "نزيف حاد" }, "نزيف مهم محتمل"),
+            (new[] { "نزيف شديد", "ينزف بشدة", "قيء دم", "براز أسود", "نزيف حاد", "نزيف قوي", "نزيف غزير" }, "نزيف مهم محتمل"),
             (new[] { "تشنج", "اختلاج", "seizure" }, "تشنج أو اختلاج"),
             (new[] { "حساسية شديدة", "تورم اللسان", "تورم الحلق", "anaphylaxis" }, "حساسية شديدة محتملة")
         };
-        return redFlags.FirstOrDefault(flag => flag.Terms.Any(text.Contains)).Reason ?? string.Empty;
+        foreach (var flag in redFlags)
+        {
+            if (flag.Terms.Any(term => raw.Contains(term) || text.Contains(NormalizeArabic(term))))
+                return flag.Reason;
+        }
+        // اقتران كلمات الألم مع مواضع خطيرة (يمسك صيغا مختلفة مثل «واجع بطني»).
+        var coOccurrenceFlags = new (string[] PainWords, string[] Regions, string Reason)[]
+        {
+            (new[] { "الم", "وجع", "واجع", "ضغط", "ثقل", "حرقة" },
+             new[] { "صدر" }, "ألم أو ضغط في الصدر"),
+            (new[] { "الم", "وجع", "واجع", "تصلب" },
+             new[] { "بطن" }, "ألم بطني شديد محتمل"),
+            (new[] { "الم", "وجع", "واجع", "اسوأ", "انفجار" },
+             new[] { "راس", "رقبة", "عقب" }, "الم راسي مفاجئ او شديد محتمل")
+        };
+        foreach (var flag in coOccurrenceFlags)
+        {
+            if (flag.PainWords.Any(word => text.Contains(NormalizeArabic(word)))
+                && flag.Regions.Any(region => text.Contains(NormalizeArabic(region))))
+                return flag.Reason;
+        }
+        return string.Empty;
     }
 
     private void SetUrgentBanner(string reason)
