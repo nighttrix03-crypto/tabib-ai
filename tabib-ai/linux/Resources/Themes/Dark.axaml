@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <Color x:Key="PrimaryColor">#4DA3FF</Color>
+    <Color x:Key="PrimaryHoverColor">#6BB3FF</Color>
+    <Color x:Key="PrimaryPressedColor">#3399FF</Color>
+    <Color x:Key="SuccessColor">#4CAF50</Color>
+    <Color x:Key="WarningColor">#FFB74D</Color>
+    <Color x:Key="ErrorColor">#EF5350</Color>
+    <Color x:Key="BackgroundColor">#1E1E1E</Color>
+    <Color x:Key="SurfaceColor">#2D2D2D</Color>
+    <Color x:Key="SurfaceHoverColor">#383838</Color>
+    <Color x:Key="BorderColor">#444444</Color>
+    <Color x:Key="TextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="TextSecondaryColor">#B0B0B0</Color>
+    <Color x:Key="TextOnPrimaryColor">#000000</Color>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+
+    <FontFamily x:Key="ArabicFont">avares://TabibAI/Resources/Fonts/#Amiri</FontFamily>
+    <FontFamily x:Key="LatinFont">avares://TabibAI/Resources/Fonts/#Inter</FontFamily>
+
+</ResourceDictionary>

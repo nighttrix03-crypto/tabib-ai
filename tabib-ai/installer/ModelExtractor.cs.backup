@@ -1,0 +1,178 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+
+namespace TabibAIInstaller;
+
+/// <summary>
+/// مستخرج النماذج من موارد المثبت المضمنة
+/// </summary>
+public static class ModelExtractor
+{
+    private const string ModelsNamespace = "TabibAIInstaller.Models.";
+    private const int BufferSize = 81920; // 80 KB buffer
+
+    /// <summary>
+    /// استخراج النموذج المحدد إلى مجلد التثبيت
+    /// </summary>
+    public static async Task<string> ExtractModelAsync(
+        EmbeddedModel model,
+        string installFolder,
+        IProgress<ExtractProgress> progress,
+        CancellationToken cancellationToken = default)
+    {
+        var modelsDir = Path.Combine(installFolder, "Models");
+        Directory.CreateDirectory(modelsDir);
+
+        var destPath = Path.Combine(modelsDir, model.FileName);
+
+        // إذا كان النموذج موجوداً بالفعل وتطابق الحجم، تخطى الاستخراج
+        if (File.Exists(destPath))
+        {
+            var existingInfo = new FileInfo(destPath);
+            var expectedSize = (long)(model.SizeGB * 1024 * 1024 * 1024);
+            if (existingInfo.Length >= expectedSize * 0.95)
+            {
+                progress.Report(new ExtractProgress(100, $"✅ {model.DisplayName} موجود بالفعل", destPath));
+                return destPath;
+            }
+        }
+
+        var resourceName = ModelsNamespace + model.FileName;
+        var assembly = Assembly.GetExecutingAssembly();
+
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream == null)
+        {
+            throw new InvalidOperationException(
+                $"❌ النموذج غير مضمن في المثبت: {resourceName}\n" +
+                $"تأكد من إضافة {model.FileName} كمورد مدمج في TabibAIInstaller.csproj");
+        }
+
+        var totalBytes = stream.Length;
+        var totalMB = totalBytes / (1024.0 * 1024);
+
+        progress.Report(new ExtractProgress(0, $"📦 جاري استخراج {model.DisplayName} ({totalMB:F0} MB)...", destPath));
+
+        using var fileStream = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
+        var buffer = new byte[BufferSize];
+        long totalRead = 0;
+        int lastReportedPercent = -1;
+        var sw = Stopwatch.StartNew();
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var read = await stream.ReadAsync(buffer, cancellationToken);
+            if (read == 0) break;
+
+            await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            totalRead += read;
+/// <summary>
+    /// استخراج تطبيق TabibAI.exe
+    /// </summary>
+    public static async Task<string> ExtractAppAsync(
+        string installFolder,
+        IProgress<ExtractProgress> progress,
+        CancellationToken cancellationToken = default)
+    {
+        var destPath = Path.Combine(installFolder, "TabibAI.exe");
+        const string resourceName = "TabibAIInstaller.TabibAI.exe";
+        var assembly = Assembly.GetExecutingAssembly();
+
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream == null)
+            throw new InvalidOperationException($"❌ تطبيق TabibAI.exe غير مضمن في المثبت: {resourceName}");
+
+        var totalBytes = stream.Length;
+
+        progress.Report(new ExtractProgress(0, $"📦 جاري استخراج تطبيق TabibAI ({totalBytes / (1024.0 * 1024):F0} MB)...", destPath));
+
+        using var fileStream = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
+        var buffer = new byte[BufferSize];
+        long totalRead = 0;
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var read = await stream.ReadAsync(buffer, cancellationToken);
+            if (read == 0) break;
+
+            await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            totalRead += read;
+
+            var percent = (int)(totalRead * 100 / totalBytes);
+            if (percent % 10 == 0)
+            {
+                progress.Report(new ExtractProgress(percent, $"📦 استخراج التطبيق: {percent}%", destPath));
+            }
+        }
+
+        progress.Report(new ExtractProgress(100, $"✅ تم استخراج TabibAI.exe", destPath));
+        return destPath;
+    }
+
+    /// <summary>
+    /// قائمة النماذج المضمنة في المثبت
+    /// </summary>
+    public static string[] GetEmbeddedModelFiles()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var prefix = ModelsNamespace;
+        var resources = assembly.GetManifestResourceNames();
+        var models = new List<string>();
+
+        foreach (var res in resources)
+        {
+            if (res.StartsWith(prefix, StringComparison.Ordinal) && res.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase))
+            {
+                models.Add(res[prefix.Length..]);
+            }
+        }
+
+        return models.ToArray();
+    }
+}
+
+/// <summary>
+/// تقدم عملية الاستخراج
+/// </summary>
+public readonly record struct ExtractProgress(
+    int Percent,
+    string Message,
+    string FilePath
+);
+
+            var percent = (int)(totalRead * 100 / totalBytes);
+            if (percent != lastReportedPercent && percent % 5 == 0)
+            {
+                lastReportedPercent = percent;
+                var speedMBps = (totalRead / (1024.0 * 1024)) / sw.Elapsed.TotalSeconds;
+                var remainingMB = (totalBytes - totalRead) / (1024.0 * 1024);
+                var etaSec = speedMBps > 0 ? remainingMB / speedMBps : 0;
+
+                progress.Report(new ExtractProgress(
+                    percent,
+                    $"📦 استخراج {model.DisplayName}: {percent}% ({speedMBps:F1} MB/s، ~{etaSec:F0} ث متبقية)",
+                    destPath));
+            }
+        }
+
+        await fileStream.FlushAsync(cancellationToken);
+        sw.Stop();
+
+        // تحقق من سلامة الملف
+        var finalInfo = new FileInfo(destPath);
+        if (finalInfo.Length < totalBytes * 0.95)
+        {
+            File.Delete(destPath);
+            throw new InvalidOperationException($"❌ فشل الاستخراج: الملف الناتج أصغر من المتوقع ({finalInfo.Length} vs {totalBytes})");
+        }
+
+        progress.Report(new ExtractProgress(100, $"✅ تم استخراج {model.DisplayName} بنجاح ({finalInfo.Length / (1024.0 * 1024):F1} MB)", destPath));
+        return destPath;
+    }
+}

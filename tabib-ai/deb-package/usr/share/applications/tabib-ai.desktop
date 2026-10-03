@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.1.0
+Type=Application
+Name=Tabib AI
+Name[ar]=طبيب AI
+Comment=Medical AI Assistant - Local Medical Consultations
+Comment[ar]=مساعد طبي ذكي - استشارات طبية محلية
+Exec=tabib-ai
+Icon=tabib-ai
+Terminal=false
+Categories=MedicalSoftware;Science;Education;
+Keywords=medical;ai;health;emergency;doctor;arabic;
+StartupNotify=true
+StartupWMClass=TabibAI

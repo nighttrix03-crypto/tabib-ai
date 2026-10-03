@@ -1,0 +1,12 @@
+🚀 Tabib AI v1.1.0 Release Upload (Streaming)
+==================================================
+✅ Found: TabibAI-Setup.exe (122.1 MB)
+✅ Found: TabibAI.exe (0.2 MB)
+✅ Found: tabib-ai_1.1.0-1_amd64.deb (1600.8 MB)
+✅ Found: TabibAI-source.zip (0.0 MB)
+✅ Found: gemma2-2b.gguf (1600.7 MB)
+✅ Found: SHA256SUMS-v1.1.0.txt (0.0 MB)
+✅ Release v1.1.0 exists (ID: 400320940)
+⬆️  Uploading TabibAI-Setup.exe (122.1 MB)...
+   ❌ Failed: 400 - {"message":"Bad Content-Length","request_id":"9C36:3A2672:1AA891:1CCEDA:6ABFD2B9"}
+❌ Failed to upload TabibAI-Setup.exe: 400 Client Error: Bad Request for url: https://uploads.github.com/repos/nighttrix03-crypto/tabib-ai/releases/400320940/assets?name=TabibAI-Setup.exe

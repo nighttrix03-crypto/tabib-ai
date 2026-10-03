@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TabibAI-Setup</AssemblyName>
+    <RootNamespace>TabibAIInstaller</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.1.0</Version>
+    <!-- تحسينات للحجم الكبير -->
+    <PublishSingleFile>false</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- التطبيق الرئيسي -->
+    <EmbeddedResource Include="..\dist\TabibAI.exe" LogicalName="TabibAIInstaller.TabibAI.exe" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- النماذج الطبية المضمنة كملفات محتوى -->
+    <Content Include="..\Resources\Models\medgemma1.5.gguf" Condition="Exists('..\Resources\Models\medgemma1.5.gguf')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Resources\Models\gemma2-2b.gguf" Condition="Exists('..\Resources\Models\gemma2-2b.gguf')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Resources\Models\gemma3-270m.gguf" Condition="Exists('..\Resources\Models\gemma3-270m.gguf')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Resources\Models\qwen-0.5b.gguf" Condition="Exists('..\Resources\Models\qwen-0.5b.gguf')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.0" />
+  </ItemGroup>
+
+  <!-- تحذير إذا لم توجد النماذج -->
+  <Target Name="CheckModelsExist" BeforeTargets="Build">
+    <Warning Text="⚠️ نموذج MedGemma 1.5 غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\medgemma1.5.gguf')" />
+    <Warning Text="⚠️ نموذج Gemma 2B غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\gemma2-2b.gguf')" />
+    <Warning Text="⚠️ نموذج Gemma 3 270M غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\gemma3-270m.gguf')" />
+    <Warning Text="⚠️ نموذج Qwen 0.5B غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\qwen-0.5b.gguf')" />
+  </Target>
+</Project>
+
+  <ItemGroup>
+    <!-- التطبيق الرئيسي -->
+    <EmbeddedResource Include="..\dist\TabibAI.exe" LogicalName="TabibAIInstaller.TabibAI.exe" />
+
+    <!-- النماذج الطبية المضمنة (تضاف عند توفرها) -->
+    <EmbeddedResource Include="..\Resources\Models\medgemma1.5.gguf" LogicalName="TabibAIInstaller.Models.medgemma1.5.gguf" Condition="Exists('..\Resources\Models\medgemma1.5.gguf')" />
+    <EmbeddedResource Include="..\Resources\Models\gemma2-2b.gguf" LogicalName="TabibAIInstaller.Models.gemma2-2b.gguf" Condition="Exists('..\Resources\Models\gemma2-2b.gguf')" />
+    <EmbeddedResource Include="..\Resources\Models\gemma3-270m.gguf" LogicalName="TabibAIInstaller.Models.gemma3-270m.gguf" Condition="Exists('..\Resources\Models\gemma3-270m.gguf')" />
+    <EmbeddedResource Include="..\Resources\Models\qwen-0.5b.gguf" LogicalName="TabibAIInstaller.Models.qwen-0.5b.gguf" Condition="Exists('..\Resources\Models\qwen-0.5b.gguf')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.0" />
+  </ItemGroup>
+
+  <!-- تحذير إذا لم توجد النماذج -->
+  <Target Name="CheckModelsExist" BeforeTargets="Build">
+    <Warning Text="⚠️ نموذج MedGemma 1.5 غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\medgemma1.5.gguf')" />
+    <Warning Text="⚠️ نموذج Gemma 2B غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\gemma2-2b.gguf')" />
+    <Warning Text="⚠️ نموذج Gemma 3 270M غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\gemma3-270m.gguf')" />
+    <Warning Text="⚠️ نموذج Qwen 0.5B غير موجود - لن يتوفر في المثبت" Condition="!Exists('..\Resources\Models\qwen-0.5b.gguf')" />
+  </Target>
+</Project>

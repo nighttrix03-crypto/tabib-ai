@@ -1,0 +1,55 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:TabibAI.Linux"
+             xmlns:styling="using:Avalonia.Markup.Xaml.Styling"
+             x:Class="TabibAI.Linux.App"
+             RequestedThemeVariant="Light">
+    <Application.Styles>
+        <FluentTheme />
+
+        <!-- أنماط عامة موحّدة (كانت داخل ملفات الثيم - ResourceDictionary لا يقبل Styles في Avalonia 11) -->
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource ArabicFont}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextOnPrimaryBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16 8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontFamily" Value="{StaticResource ArabicFont}"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+        </Style>
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="{StaticResource PrimaryPressedColor}"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12 8"/>
+            <Setter Property="FontFamily" Value="{StaticResource ArabicFont}"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        </Style>
+
+        <Style Selector="ScrollViewer">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <styling:ResourceInclude Source="avares://TabibAI/Resources/Themes/Light.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

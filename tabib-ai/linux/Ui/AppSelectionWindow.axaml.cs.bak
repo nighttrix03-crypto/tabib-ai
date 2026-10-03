@@ -1,0 +1,289 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using System;
+using System.Linq;
+using TabibAI.Linux.Core;
+using TabibAI.Linux.Ui;
+
+namespace TabibAI.Linux.Ui;
+
+public partial class AppSelectionWindow : Window
+{
+    private readonly OllamaClient ollama = new();
+    private int deviceRAM = 4096; // القيمة الافتراضية
+    // دعم اللغة
+    private LanguageManager.Language currentLanguage = LanguageManager.Language.Arabic;
+
+    public AppSelectionWindow()
+    {
+        InitializeComponent();
+        LoadDeviceInfo();
+        BuildAppButtons();
+    }
+
+    public AppSelectionWindow(LanguageManager.Language language)
+    {
+        InitializeComponent();
+        currentLanguage = language;
+        LoadDeviceInfo();
+        BuildAppButtons();
+    }
+
+    private void LoadDeviceInfo()
+    {
+        var deviceInfo = ModelManager.GetDeviceInfo();
+        deviceRAM = deviceInfo.AvailableRAMMB > 0 ? deviceInfo.AvailableRAMMB : 4096;
+
+        DeviceInfoText.Text = $"🔧 الجهاز: {deviceInfo.Os}";
+        DeviceRAMText.Text = $"📊 الذاكرة: {deviceInfo.TotalRAMMB:N0} ميجابايت (متاح: {deviceInfo.AvailableRAMMB:N0} ميجابايت)";
+    }
+
+    private void BuildAppButtons()
+    {
+        var appMap = ModelManager.GetAppModelMapWithDomainInstructions();
+
+        foreach (var kvp in appMap)
+        {
+            var appType = kvp.Key;
+            var (modelKey, modelName, sizeGB, ramReq, description, _) = kvp.Value;
+
+            var modelIcon = GetModelIcon(modelKey);
+            var ramStatus = deviceRAM >= ramReq ? "✅" : "⚠️";
+            var compatibilityText = deviceRAM >= ramReq ? "متوافق" : $"يتطلب {ramReq / 1024:F1} جيجابايت رام";
+
+            var infoText = new TextBlock
+            {
+                Text = $"📱 {description}\n{modelIcon} {modelName} ({sizeGB} جيجابايت)\n{ramStatus} {compatibilityText}",
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Avalonia.Media.Brushes.White,
+                Margin = new Thickness(0, 4, 0, 0)
+            };
+
+            var appButton = new Button
+            {
+                Content = new StackPanel
+                {
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = GetAppDisplayName(appType),
+                            FontWeight = FontWeight.Bold,
+                            FontSize = 14,
+                            Foreground = Avalonia.Media.Brushes.White,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            Margin = new Thickness(0, 0, 0, 8)
+                        },
+                        infoText
+                    }
+                },
+                Background = GetAppColor(appType),
+                BorderBrush = Avalonia.Media.Brushes.White,
+                BorderThickness = new Thickness(2),
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(15, 12),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                Margin = new Thickness(0, 0, 0, 10),
+                Tag = appType
+            };
+
+            appButton.Click += (_, _) => OnAppSelected(appType, modelKey);
+            AppsPanel.Children.Add(appButton);
+        }
+
+        // إضافة لغة وحدة التحكم
+        AddLanguageSelector();
+    }
+
+    private void AddLanguageSelector()
+    {
+        var languagePanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 10,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 20, 0, 10)
+        };
+
+        languagePanel.Children.Add(new TextBlock
+        {
+            Text = "🌐 اللغة:",
+            FontWeight = FontWeight.Bold,
+            FontSize = 12,
+            VerticalAlignment = VerticalAlignment.Center
+        });
+
+        foreach (var language in LanguageManager.SupportedLanguages)
+        {
+            var flag = LanguageManager.GetLanguageFlag(language);
+            var button = new Button
+            {
+                Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 5,
+                    Children =
+                    {
+                        new TextBlock { Text = flag, FontSize = 16 },
+                        new TextBlock { Text = LanguageManager.GetLanguageDisplayName(language), FontSize = 11 }
+                    }
+                },
+                Padding = new Thickness(8, 4),
+                Background = currentLanguage == language ? Avalonia.Media.Brushes.LightBlue : Avalonia.Media.Brushes.Transparent,
+                BorderBrush = Avalonia.Media.Brushes.Gray,
+                CornerRadius = new CornerRadius(4)
+            };
+
+            button.Click += (_, _) => OnLanguageChanged(language);
+            languagePanel.Children.Add(button);
+        }
+
+        AppsPanel.Children.Add(languagePanel);
+    }
+
+    private string GetAppDisplayName(string appType)
+    {
+        return appType switch
+        {
+            "xray_analysis" => "🔍 تحليل الأشعة",
+            "mri_scan" => "🧠 تحليل MRI",
+            "ct_analysis" => "🩺 تحليل CT",
+            "lab_analysis" => "🧪 تحليل الفحوصات المخبرية",
+            "ecg_analysis" => "💓 تحليل ECG",
+            "primary_care" => "🩺 الفحوصات الأساسية",
+            "general_checkup" => "🏥 الفحص العام",
+            "specialized_diagnosis" => "🎯 التشخيص المتخصص",
+            "emergency_care" => "🚨 الرعاية الطارئة",
+            "pediatrics" => "👶 طب الأطفال",
+            "psychology" => "🧠 الصحة النفسية",
+            "nutrition" => "🥗 التغذية",
+            "dermatology" => "🎭 الأمراض الجلدية",
+            _ => appType
+        };
+    }
+
+    private string GetModelIcon(string modelKey)
+    {
+        return modelKey switch
+        {
+            "medgemma1.5" => "🧠",
+            "gemma:2b" => "⚡",
+            "gemma3:270m" => "🔋",
+            "qwen:0.5b" => "📱",
+            _ => "🤖"
+        };
+    }
+
+    private Avalonia.Media.IBrush GetAppColor(string appType)
+    {
+        return appType switch
+        {
+            "xray_analysis" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xFF, 0x6B, 0x6B)), // أحمر دافئ
+            "mri_scan" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x4B, 0x9F, 0xFF)), // أزرق
+            "ct_analysis" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xFF, 0x8C, 0x00)), // برتقالي
+            "lab_analysis" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x4B, 0xB3, 0x4B)), // أخضر
+            "ecg_analysis" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xFF, 0x45, 0x00)), // برتقالي داكن
+            "primary_care" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x17, 0xA3, 0x17)), // أخضر داكن
+            "general_checkup" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x32, 0xCD, 0x32)), // أخضر زمردي
+            "specialized_diagnosis" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x8A, 0x2B, 0xE2)), // بنفسجي
+            "emergency_care" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xFF, 0x00, 0x00)), // أحمر
+            "pediatrics" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xFF, 0xA5, 0x00)), // ذهبي
+            "psychology" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xA0, 0xC0, 0xE0)), // أزرق سماوي
+            "nutrition" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xFF, 0xB2, 0x00)), // ذهبي داكن
+            "dermatology" => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0xFF, 0x99, 0xCC)), // وردي
+            _ => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x80, 0x80, 0x80)) // رمادي
+        };
+    }
+
+    private void OnLanguageChanged(LanguageManager.Language newLanguage)
+    {
+        currentLanguage = newLanguage;
+        // إعادة بناء عناصر واجهة المستخدم لتطبيق النصوص المترجمة
+        AppsPanel.Children.Clear();
+        BuildAppButtons();
+    }
+
+    private async void OnAppSelected(string appType, string modelKey)
+    {
+        SetStatus("⏳ جاري تحميل النموذج...");
+
+        var modelName = ModelManager.GetAppModelDisplayName(appType);
+        var ramReq = ModelManager.GetAppRAMRequirements(appType);
+        var isCompatible = deviceRAM >= ramReq;
+
+        if (!isCompatible)
+        {
+            await Dialogs.InfoAsync(this, "⚠️ التطبيق غير متوافق مع الجهاز",
+                $"يحتاج {GetAppDisplayName(appType)} إلى {ramReq / 1024:F1} جيجابايت رام، لكن الجهاز لديه {deviceRAM / 1024:F1} جيجابايت فقط.\n" +
+                "هل تريد استخدام نموذج بديل؟");
+
+            // العثور على النموذج الأكثر توافقًا
+            modelKey = GetMostCompatibleModel(deviceRAM);
+            modelName = ModelManager.GetSafeModelName(modelKey);
+        }
+
+        SetStatus($"📥 جاري تحميل {modelName}...");
+
+        try
+        {
+            // تعيين النموذج أولاً ثم التحقق من جاهزيته وتنزيله عند الحاجة
+            if (!ollama.SetModel(modelKey))
+                throw new Exception("فشل في تحديد النموذج");
+
+            var progress = new Progress<string>(text => SetStatus(text));
+            if (!await ollama.IsModelReadyAsync())
+            {
+                SetStatus("⬇️ جاري تنزيل النموذج...");
+                await ollama.PullAsync(progress);
+                SetStatus("✅ تم تنزيل النموذج بنجاح");
+            }
+            else
+            {
+                SetStatus("✅ النموذج جاهز بالفعل");
+            }
+
+            SetStatus($"🎯 تم تحديد التطبيق: {GetAppDisplayName(appType)}");
+            ShowMainApp(appType, modelKey);
+        }
+        catch (Exception ex)
+        {
+            await Dialogs.ErrorAsync(this, "خطأ في تحميل النموذج",
+                $"تعذر تحميل {modelName}: {ex.Message}\n\n" +
+                "تحقق من اتصال الإنترنت ومحرك Ollama.");
+        }
+    }
+
+    private void ShowMainApp(string appType, string modelKey)
+    {
+        // تطبيق الاختيار على النافذة الرئيسية الحالية ثم إغلاق نافذة الاختيار
+        if (Owner is MainWindow mainWindow)
+            mainWindow.ApplyAppSelection(appType, modelKey);
+        Close();
+    }
+
+    private string GetMostCompatibleModel(int availableRAM)
+    {
+        // العثور على النموذج الأكثر توافقًا الذي يلبي أو يتجاوز RAM المطلوب
+        var compatibleModels = ModelManager.GetAvailableModelKeys()
+            .Where(m => ModelManager.GetModelRAMRequirements(m) <= availableRAM)
+            .OrderByDescending(m => ModelManager.GetModelRAMRequirements(m))
+            .ToList();
+
+        return compatibleModels.Count > 0 ? compatibleModels[0] : "gemma:2b";
+    }
+
+    private void SetStatus(string text)
+    {
+        StatusText.Text = text;
+    }
+
+    private void OnCancelClick(object? sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+}

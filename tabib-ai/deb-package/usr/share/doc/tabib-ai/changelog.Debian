@@ -1,0 +1,12 @@
+tabib-ai (1.1.0-1) unstable; urgency=medium
+
+  * Initial release of Tabib AI v1.1.0
+  * Medical AI Assistant with 4 adaptive models (270MB - 3.3GB)
+  * Emergency detection with local emergency numbers (Algeria, Morocco, Saudi Arabia, Egypt, UAE)
+  * Arabic normalization and dialect support
+  * DICOM medical image analysis (X-ray, MRI, CT)
+  * Local encrypted medical records
+  * Support for Windows, Linux, macOS
+  * Safety-first architecture with deterministic safety layer
+
+ -- Tabib AI Team <tabib-ai@example.com>  Mon, 30 Sep 2026 18:30:00 +0100

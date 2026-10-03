@@ -1,0 +1,4 @@
+  Determining projects to restore...
+  Restored /home/mezouarsohaib/tabib-ai/TabibAI.csproj (in 964 ms).
+/home/mezouarsohaib/tabib-ai/Program.cs(111,25): warning CS0169: The field 'MainForm.currentRecord' is never used [/home/mezouarsohaib/tabib-ai/TabibAI.csproj]
+  TabibAI -> /home/mezouarsohaib/tabib-ai/bin/Release/net10.0-windows/win-x64/TabibAI.dll

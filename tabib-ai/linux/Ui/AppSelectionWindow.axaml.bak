@@ -1,0 +1,71 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TabibAI.Linux.Ui.AppSelectionWindow"
+        Title="اختيار التطبيق - TabibAI Linux"
+        Width="800"
+        Height="700"
+        Background="#F5F7FA"
+        Padding="20">
+    
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- العنوان والشعار -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20">
+            <TextBlock Text="🏥 TabibAI - نظام التشخيص الطبي"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="#2D3748"/>
+            <TextBlock Text="اختر التطبيق الطبي الذي تريد استخدامه"
+                       FontSize="14"
+                       Foreground="#718096"
+                       Margin="0,5"/>
+        </StackPanel>
+
+        <!-- معلومات الجهاز -->
+        <Border Grid.Row="1" Background="#FFFFFF" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+            <StackPanel>
+                <TextBlock Text="معلومات الجهاز" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <TextBlock Text="DeviceInfoText" FontSize="13" Foreground="#4A5568" Width="150"/>
+                    <TextBlock Text="DeviceRAMText" FontSize="13" Foreground="#4A5568" Width="250"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- قائمة تطبيقات الصور -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <TextBlock Text="اختر نوع التطبيق" FontWeight="Bold" FontSize="16" Margin="0,0,0,15"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Width="350">
+                        <TextBlock Text="AppsPanel" TextWrapping="Wrap" FontSize="12" LineHeight="1.4" Foreground="#2D3748"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- الفئات المضافة لاحقًا من Axaml -->
+        <TextBlock Name="DeviceInfoText" IsVisible="False"/>
+        <TextBlock Name="DeviceRAMText" IsVisible="False"/>
+        <Panel Name="AppsPanel" IsVisible="False"/>
+
+        <!-- Hidden controls for compilation -->
+        <Button Name="CancelButton" IsVisible="False" Click="OnCancelClick"/>
+        <TextBlock Name="StatusText" IsVisible="False"/>
+
+        <!-- أزرار الإجراءات السفلية -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="0,20,0,0">
+            <Button Content="إلغاء" Click="OnCancelClick"
+                    Width="120" Height="45" Background="#E2E8F0" Foreground="#4A5568" FontSize="14" FontWeight="SemiBold"/>
+        </StackPanel>
+    </Grid>
+</Window>

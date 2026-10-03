@@ -1,0 +1,25 @@
+**/bin/
+**/obj/
+**/dist/*.pdb
+.vs/
+.DS_Store
+# الملفات الكبيرة توزع عبر Release assets وليس git
+merged-win/*.exe
+installer/dist/*.exe
+installer/dist-new/*.exe
+installer/dist-single/*.exe
+dist/*.exe
+TabibAI.exe
+*.deb
+*.gguf
+Release GMM
+
+# مخرجات بناء إضافية وملفات توزيع كبيرة
+installer/dist-new/
+installer/dist-single/
+dist-win/
+distribution/*.zip
+distribution/**/*.exe
+installer/**/*.dll
+installer/**/*.pdb
+dist/

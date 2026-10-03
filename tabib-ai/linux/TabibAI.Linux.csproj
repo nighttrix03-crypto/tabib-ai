@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TabibAI</AssemblyName>
+    <RootNamespace>TabibAI.Linux</RootNamespace>
+    <Version>1.1.0</Version>
+    <Product>Tabib AI Linux</Product>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- إبقاء JSON Reflection مفعّلاً (CaseStore/History يستخدمون JsonSerializer العادي) -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    
+    <RuntimeIdentifiers>linux-x64;linux-arm64;win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.22" />
+    <PackageReference Include="fo-dicom" Version="5.2.6" />
+    
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    
+    <PackageReference Include="LlamaCpp" Version="24.1.44822" />
+    
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Management" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/I18n/ar.json" LogicalName="TabibAI.Linux.Resources.I18n.ar.json" />
+    <EmbeddedResource Include="Resources/I18n/en.json" LogicalName="TabibAI.Linux.Resources.I18n.en.json" />
+    <EmbeddedResource Include="Resources/I18n/fr.json" LogicalName="TabibAI.Linux.Resources.I18n.fr.json" />
+    <EmbeddedResource Include="Resources/Fonts/Amiri-Regular.ttf" LogicalName="TabibAI.Linux.Resources.Fonts.Amiri-Regular.ttf" />
+    <EmbeddedResource Include="Resources/Fonts/Inter-Regular.ttf" LogicalName="TabibAI.Linux.Resources.Fonts.Inter-Regular.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Resources/Themes/**/*.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Core/AdvancedFeatures/**/*.cs" />
+    <Compile Remove="Core/Services/**/*.cs" />
+    <Compile Remove="Core/DI/**/*.cs" />
+    <Compile Remove="Ui/AppSelectionWindow.axaml.cs" />
+    <Compile Remove="Ui/Dialogs.cs" />
+    <AvaloniaResource Remove="Ui/AppSelectionWindow.axaml" />
+    <Compile Remove="Ui/HistoryWindow.cs" />
+    <Compile Remove="MainWindow.Actions.cs" />
+    <Compile Remove="MainWindow.Analyze.cs" />
+    <Compile Remove="MainWindow.Export.cs" />
+    <Compile Remove="MainWindow.Files.cs" />
+    <Compile Remove="MainWindow.Setup.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="MediatR" />
+    <TrimmerRootAssembly Include="MediatR.Extensions.Microsoft.DependencyInjection" />
+    <TrimmerRootAssembly Include="LlamaCpp" />
+    <TrimmerRootAssembly Include="Microsoft.Extensions.DependencyInjection" />
+    <TrimmerRootAssembly Include="Microsoft.Extensions.Hosting" />
+    <TrimmerRootAssembly Include="Microsoft.Extensions.Configuration" />
+    <TrimmerRootAssembly Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+</Project>

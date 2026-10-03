@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:TabibAI.Linux.Ui.Chat"
+             xmlns:models="using:TabibAI.Linux.Core.Models"
+             x:Class="TabibAI.Linux.Ui.Chat.ChatView"
+             x:DataType="vm:ChatViewModel"
+             FlowDirection="RightToLeft">
+
+    <UserControl.Styles>
+        <Style Selector="Border.MessageBubble">
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="14 10"/>
+            <Setter Property="Margin" Value="8 4"/>
+            <Setter Property="MaxWidth" Value="950"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Effect">
+                <DropShadowEffect BlurRadius="8" Opacity="0.1" OffsetY="2" Color="Black"/>
+            </Setter>
+        </Style>
+        <Style Selector="Border.UserMessage">
+            <Setter Property="Background" Value="#0066CC"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="CornerRadius" Value="16 16 4 16"/>
+        </Style>
+        <Style Selector="Border.AssistantMessage">
+            <Setter Property="Background" Value="#F3F3F3"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="CornerRadius" Value="16 16 16 4"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="TextBlock.MessageText">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="LineHeight" Value="21"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="FontFamily" Value="{StaticResource ArabicFont}"/>
+        </Style>
+        <Style Selector="TextBlock.UserMessageText">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="TextBlock.AssistantMessageText">
+            <Setter Property="Foreground" Value="#1A1A1A"/>
+        </Style>
+        <Style Selector="TextBlock.TypingIndicator">
+            <Setter Property="Foreground" Value="#666"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="*, Auto, Auto">
+        <ScrollViewer Name="MessagesScroll" Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Messages}" x:Name="MessagesList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="models:ChatMessage">
+                        <Border Classes="MessageBubble" Classes.UserMessage="{Binding IsUser}" Classes.AssistantMessage="{Binding !IsUser}">
+                            <StackPanel Orientation="Vertical" Spacing="4">
+                                <TextBlock Classes="MessageText" Classes.UserMessageText="{Binding IsUser}" Classes.AssistantMessageText="{Binding !IsUser}"
+                                           Text="{Binding Content}"/>
+                                <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}" 
+                                           FontSize="10" Foreground="#888" HorizontalAlignment="Right"
+                                           FontFamily="{StaticResource LatinFont}"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="1" IsVisible="{Binding IsStreaming}" Padding="16 0 16 8" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Border Width="8" Height="8" Background="#0066CC" CornerRadius="4">
+                    <Border.Styles>
+                        <Style Selector="Border">
+                            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.3"/><Setter Property="RenderTransform"><TranslateTransform Y="0"/></Setter></KeyFrame>
+                                    <KeyFrame Cue="50%"><Setter Property="Opacity" Value="1"/><Setter Property="RenderTransform"><TranslateTransform Y="-6"/></Setter></KeyFrame>
+                                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.3"/><Setter Property="RenderTransform"><TranslateTransform Y="0"/></Setter></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Border.Styles>
+                </Border>
+                <Border Width="8" Height="8" Background="#0066CC" CornerRadius="4">
+                    <Border.Styles>
+                        <Style Selector="Border">
+                            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.2">
+                                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.3"/><Setter Property="RenderTransform"><TranslateTransform Y="0"/></Setter></KeyFrame>
+                                    <KeyFrame Cue="50%"><Setter Property="Opacity" Value="1"/><Setter Property="RenderTransform"><TranslateTransform Y="-6"/></Setter></KeyFrame>
+                                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.3"/><Setter Property="RenderTransform"><TranslateTransform Y="0"/></Setter></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Border.Styles>
+                </Border>
+                <Border Width="8" Height="8" Background="#0066CC" CornerRadius="4">
+                    <Border.Styles>
+                        <Style Selector="Border">
+                            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.4">
+                                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.3"/><Setter Property="RenderTransform"><TranslateTransform Y="0"/></Setter></KeyFrame>
+                                    <KeyFrame Cue="50%"><Setter Property="Opacity" Value="1"/><Setter Property="RenderTransform"><TranslateTransform Y="-6"/></Setter></KeyFrame>
+                                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.3"/><Setter Property="RenderTransform"><TranslateTransform Y="0"/></Setter></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Border.Styles>
+                </Border>
+                <TextBlock Text="يكتب..." Classes="TypingIndicator" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0 1 0 0" Padding="12">
+            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
+                <TextBox Grid.Row="0" Grid.Column="0" 
+                         Text="{Binding InputText, Mode=TwoWay}"
+                         Watermark="اكتب رسالتك هنا... (Enter للإرسال، Shift+Enter لسطر جديد)"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" MaxHeight="150"
+                         VerticalAlignment="Center" FontSize="14" FontFamily="{StaticResource ArabicFont}"
+                         KeyDown="InputTextBox_KeyDown" x:Name="InputTextBox"
+                         CaretBrush="#0066CC" BorderBrush="#DDD" BorderThickness="1" CornerRadius="24"
+                         Padding="16 10" Background="#FAFAFA"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="إرسال" Command="{Binding SendCommand}"
+                        IsEnabled="{Binding !IsStreaming}" Margin="12 0 0 0" Padding="24 12"
+                        Background="#0066CC" Foreground="White" CornerRadius="24"
+                        FontWeight="SemiBold" FontFamily="{StaticResource ArabicFont}" VerticalAlignment="Center">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover"><Setter Property="Background" Value="#0052A3"/></Style>
+                        <Style Selector="Button:disabled"><Setter Property="Background" Value="#CCCCCC"/><Setter Property="Foreground" Value="#888888"/></Style>
+                    </Button.Styles>
+                </Button>
+                <Button Grid.Row="0" Grid.Column="1" Content="إيقاف" Command="{Binding StopCommand}"
+                        IsVisible="{Binding IsStreaming}" Margin="12 0 0 0" Padding="24 12"
+                        Background="#CC0000" Foreground="White" CornerRadius="24"
+                        FontWeight="SemiBold" FontFamily="{StaticResource ArabicFont}" VerticalAlignment="Center"/>
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="8" Margin="0 8 0 0" HorizontalAlignment="Right">
+                    <Button Content="🩺 تشخيص جديد" Command="{Binding NewDiagnosisCommand}" Classes="QuickAction"/>
+                    <Button Content="📋 متابعة" Command="{Binding FollowUpCommand}" Classes="QuickAction"/>
+                    <Button Content="📄 تقرير" Command="{Binding GenerateReportCommand}" Classes="QuickAction"/>
+                    <Button Content="💾 حفظ" Command="{Binding SaveCaseCommand}" Classes="QuickAction"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

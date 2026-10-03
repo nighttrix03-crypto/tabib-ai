@@ -1,0 +1,8 @@
+🚀 Uploading remaining assets for Tabib AI v1.1.0
+==================================================
+✅ Found: tabib-ai_1.1.0-1_amd64.deb (1600.8 MB)
+✅ Found: gemma2-2b.gguf (1600.7 MB)
+✅ Release v1.1.0 exists (ID: 400320940)
+⬆️  Uploading tabib-ai_1.1.0-1_amd64.deb (1600.8 MB)...
+   ❌ Failed: 400 - {"message":"Bad Content-Length","request_id":"C4D6:6C6E8:1CE763:1F3E0F:6ABFD468"}
+❌ Error uploading tabib-ai_1.1.0-1_amd64.deb: 400 Client Error: Bad Request for url: https://uploads.github.com/repos/nighttrix03-crypto/tabib-ai/releases/400320940/assets?name=tabib-ai_1.1.0-1_amd64.deb

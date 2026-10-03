@@ -1,0 +1,343 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using LLama;
+using LLama.Common;
+using LLama.Abstractions;
+using LLama.Sampling;
+using Microsoft.Extensions.Logging;
+
+namespace TabibAI.Linux.Core.Llama;
+
+public class LlamaEngine : ILlamaEngine
+{
+    private readonly ILogger? _logger;
+    private LLamaWeights? _weights;
+    private LLamaContext? _context;
+    private StatelessExecutor? _executor;
+    private ModelParams? _modelParams;
+    private ContextParams? _contextParams;
+    private InferenceParams? _inferenceParams;
+
+    private string _modelPath = "";
+    private int _contextSize = 4096;
+    private int _gpuLayers = -1;
+    private bool _initialized = false;
+    private bool _disposed = false;
+
+    // Performance tracking
+    private long _totalTokensGenerated = 0;
+    private double _totalInferenceTimeMs = 0;
+    private readonly object _statsLock = new();
+
+    public bool IsInitialized => _initialized && !_disposed;
+    public string CurrentModel => Path.GetFileName(_modelPath);
+
+    public LlamaEngine(ILogger<LlamaEngine>? logger = null)
+    {
+        _logger = logger;
+    }
+
+    public async Task InitializeAsync(string modelPath, int contextSize = 4096, int gpuLayers = -1, CancellationToken ct = default)
+    {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(LlamaEngine));
+
+        if (!File.Exists(modelPath))
+            throw new FileNotFoundException($"Model file not found: {modelPath}", modelPath);
+
+        // Dispose previous resources if re-initializing
+        DisposeInternal();
+
+        _modelPath = modelPath;
+        _contextSize = contextSize;
+        _gpuLayers = gpuLayers;
+
+        try
+        {
+            _logger?.LogInformation("Initializing LlamaEngine with model: {ModelPath}, context: {ContextSize}, gpuLayers: {GpuLayers}",
+                modelPath, contextSize, gpuLayers);
+
+            // Configure native library (must be done before any other llama.cpp calls)
+            ConfigureNativeLibrary();
+
+            // Create model parameters
+            _modelParams = new ModelParams(modelPath)
+            {
+                ContextSize = (uint)contextSize,
+                GpuLayerCount = gpuLayers >= 0 ? gpuLayers : 999, // -1 means all layers on GPU
+                CheckTensors = true,
+                VocabOnly = false,
+                LoadMode = LLamaLoadMode.Mmap,
+                FlashAttention = true,
+            };
+
+            // Create context parameters
+            _contextParams = new ContextParams
+            {
+                ContextSize = (uint)contextSize,
+                BatchSize = 512,
+                UBatchSize = 512,
+                Threads = Environment.ProcessorCount,
+                BatchThreads = Environment.ProcessorCount,
+                FlashAttention = true,
+                KVUnified = true,
+            };
+
+            // Load model weights asynchronously with progress reporting
+            var progress = new Progress<float>(p =>
+            {
+                _logger?.LogDebug("Model loading progress: {Progress:P1}", p);
+            });
+
+            _weights = await LLamaWeights.LoadFromFileAsync(_modelParams, ct, progress)
+                .ConfigureAwait(false);
+
+            if (_weights == null || _weights.NativeHandle.IsClosed)
+                throw new InvalidOperationException("Failed to load model weights");
+
+            // Create context
+            _context = _weights.CreateContext(_contextParams, _logger);
+
+            // Create executor for inference
+            _executor = new StatelessExecutor(_weights, _contextParams, _logger);
+
+            // Default inference parameters
+            _inferenceParams = new InferenceParams
+            {
+                Temperature = 0.7f,
+                TopP = 0.9f,
+                TopK = 40,
+                RepeatPenalty = 1.1f,
+                MaxTokens = -1, // No limit
+                AntiPrompts = Array.Empty<string()>,
+                DecodeSpecialTokens = false,
+            };
+
+            _initialized = true;
+            _logger?.LogInformation("LlamaEngine initialized successfully: {ModelName}", CurrentModel);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            DisposeInternal();
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to initialize LlamaEngine");
+            DisposeInternal();
+            throw new InvalidOperationException($"Failed to initialize model: {ex.Message}", ex);
+        }
+    }
+
+    public async IAsyncEnumerable<string> StreamInferenceAsync(string prompt, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        if (!_initialized || _disposed)
+            throw new InvalidOperationException("Engine not initialized or has been disposed");
+
+        if (_executor == null || _context == null)
+            throw new InvalidOperationException("Inference engine not ready");
+
+        var stopwatch = Stopwatch.StartNew();
+        var tokenCount = 0;
+        var fullResponse = new StringBuilder();
+
+        try
+        {
+            // Apply template if needed (for chat models like Gemma)
+            var inferenceParams = _inferenceParams!;
+            
+            await foreach (var token in _executor.InferAsync(prompt, inferenceParams, ct).ConfigureAwait(false))
+            {
+                ct.ThrowIfCancellationRequested();
+                
+                tokenCount++;
+                fullResponse.Append(token);
+                
+                // Yield each token/word for streaming
+                yield return token;
+            }
+
+            stopwatch.Stop();
+            
+            // Update performance stats
+            lock (_statsLock)
+            {
+                _totalTokensGenerated += tokenCount;
+                _totalInferenceTimeMs += stopwatch.Elapsed.TotalMilliseconds;
+            }
+
+            _logger?.LogDebug("Inference completed: {TokenCount} tokens in {ElapsedMs}ms ({TokensPerSec:F2} tok/s)",
+                tokenCount, stopwatch.Elapsed.TotalMilliseconds, 
+                tokenCount / (stopwatch.Elapsed.TotalMilliseconds / 1000.0));
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            _logger?.LogInformation("Inference cancelled");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Inference failed");
+            throw new InvalidOperationException($"Inference failed: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<string> InferAsync(string prompt, CancellationToken ct = default)
+    {
+        var result = new StringBuilder();
+        await foreach (var token in StreamInferenceAsync(prompt, ct).ConfigureAwait(false))
+        {
+            result.Append(token);
+        }
+        return result.ToString();
+    }
+
+    public ModelInfo GetModelInfo()
+    {
+        if (!_initialized || _weights == null || _disposed)
+        {
+            return new ModelInfo(
+                Path.GetFileName(_modelPath),
+                _modelPath,
+                File.Exists(_modelPath) ? new FileInfo(_modelPath).Length : 0,
+                DetectQuantization(_modelPath),
+                _contextSize,
+                _gpuLayers,
+                0
+            );
+        }
+
+        double tokensPerSecond = 0;
+        lock (_statsLock)
+        {
+            if (_totalInferenceTimeMs > 0)
+            {
+                tokensPerSecond = _totalTokensGenerated / (_totalInferenceTimeMs / 1000.0);
+            }
+        }
+
+        // Get additional info from the model if available
+        string quantization = DetectQuantization(_modelPath);
+        try
+        {
+            // Try to get quantization from model metadata
+            var metadata = _weights.Metadata;
+            if (metadata.TryGetValue("quantization", out var quant) && !string.IsNullOrEmpty(quant))
+            {
+                quantization = quant;
+            }
+            else if (metadata.TryGetValue("general.quantization_version", out var quantVer) && !string.IsNullOrEmpty(quantVer))
+            {
+                quantization = quantVer;
+            }
+        }
+        catch
+        {
+            // Ignore metadata errors, fall back to filename detection
+        }
+
+        return new ModelInfo(
+            Path.GetFileName(_modelPath),
+            _modelPath,
+            File.Exists(_modelPath) ? new FileInfo(_modelPath).Length : 0,
+            quantization,
+            _contextSize,
+            _gpuLayers,
+            tokensPerSecond
+        );
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            DisposeInternal();
+        }
+
+        _disposed = true;
+    }
+
+    private void DisposeInternal()
+    {
+        _initialized = false;
+
+        try
+        {
+            _executor = null;
+            _context?.Dispose();
+            _context = null;
+            _weights?.Dispose();
+            _weights = null;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Error during disposal");
+        }
+    }
+
+    private static void ConfigureNativeLibrary()
+    {
+        // Configure native library - this must be done before any llama.cpp calls
+        // Enable GPU acceleration if available
+        NativeLibraryConfig.All
+            .WithCuda()
+            .WithVulkan()
+            .WithMetal(); // For macOS
+
+        // Initialize native library
+        NativeApi.llama_empty_call();
+    }
+
+    private static string DetectQuantization(string path)
+    {
+        var name = Path.GetFileName(path).ToLowerInvariant();
+        
+        // Check for common quantization patterns in filename
+        if (name.Contains("q4_k_m")) return "Q4_K_M";
+        if (name.Contains("q4_k_s")) return "Q4_K_S";
+        if (name.Contains("q5_k_m")) return "Q5_K_M";
+        if (name.Contains("q5_k_s")) return "Q5_K_S";
+        if (name.Contains("q6_k")) return "Q6_K";
+        if (name.Contains("q8_0")) return "Q8_0";
+        if (name.Contains("q8_k")) return "Q8_K";
+        if (name.Contains("f16")) return "F16";
+        if (name.Contains("f32")) return "F32";
+        if (name.Contains("bf16")) return "BF16";
+        if (name.Contains("iq4")) return "IQ4";
+        if (name.Contains("iq3")) return "IQ3";
+        if (name.Contains("iq2")) return "IQ2";
+        if (name.Contains("iq1")) return "IQ1";
+
+        return "Unknown";
+    }
+
+    /// <summary>
+    /// Allows updating inference parameters at runtime
+    /// </summary>
+    public void SetInferenceParams(InferenceParams? inferenceParams)
+    {
+        if (inferenceParams != null)
+        {
+            _inferenceParams = inferenceParams;
+        }
+    }
+
+    /// <summary>
+    /// Gets current inference parameters
+    /// </summary>
+    public InferenceParams? GetInferenceParams() => _inferenceParams;
+}

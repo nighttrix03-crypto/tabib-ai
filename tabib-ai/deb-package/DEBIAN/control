@@ -1,0 +1,19 @@
+Package: tabib-ai
+Version: 1.1.0
+Section: science
+Priority: optional
+Architecture: amd64
+Depends: dotnet-runtime-10.0 | dotnet-runtime-9.0 | dotnet-runtime-8.0, libc6 (>= 2.31), libgcc-s1 (>= 4.2), libstdc++6 (>= 10)
+Maintainer: Tabib AI Team <tabib-ai@example.com>
+Description: مساعد طبي ذكي يعمل محلياً (Medical AI Assistant)
+ Tabib AI هو تطبيق طبي مفتوح المصدر يوفر استشارات طبية، إسعافات أولية،
+ تحليل صور طبية، ودعم للطلاب والأساتذة — يعمل بالكامل بدون إنترنت
+ بعد التنصيب الأول.
+ .
+ الميزات:
+  * 4 نماذج طبية متكيفة مع ذاكرة الجهاز (270MB - 3.3GB)
+  * كشف الطوارئ مع أرقام الطوارئ المحلية (1122، 15، 997، 123، 998)
+  * تحليل صور DICOM (أشعة، رنين، مقطعية)
+  * دعم اللغة العربية مع التطبيع التلقائي
+  * سجل طبي محلي مشفر
+Homepage: https://github.com/nighttrix03-crypto/tabib-ai
