@@ -1,0 +1,28 @@
+#!/bin/sh
+set -e
+# تحديث اختصارات سطح المكتب والأيقونات تلقائياً بعد التثبيت
+if command -v update-desktop-database >/dev/null 2>&1; then
+  update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
+fi
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache -f -t /usr/share/icons/hicolor >/dev/null 2>&1 || true
+fi
+# تثبيت اختصار قائمة التطبيقات لكل المستخدمين
+if command -v xdg-desktop-menu >/dev/null 2>&1; then
+  xdg-desktop-menu install --novendor /usr/share/applications/tabib-ai.desktop >/dev/null 2>&1 || true
+fi
+# نسخ اختصار لسطح مكتب المستخدم الحالي إن وُجد (GNOME/KDE/XFCE)
+for _home in /home/* /root; do
+  for _desk in "$_home/Desktop" "$_home/Bureau" "$_home/سطح المكتب" "$_home/Desktop/Desktop"; do
+    if [ -d "$_desk" ]; then
+      cp -f /usr/share/applications/tabib-ai.desktop "$_desk/tabib-ai.desktop" 2>/dev/null || true
+      chmod +x "$_desk/tabib-ai.desktop" 2>/dev/null || true
+      _user=$(basename "$_home")
+      chown "$_user":"$_user" "$_desk/tabib-ai.desktop" 2>/dev/null || true
+      if command -v gio >/dev/null 2>&1; then
+        su "$_user" -c "gio set '$_desk/tabib-ai.desktop' metadata::trusted true" 2>/dev/null || true
+      fi
+    fi
+  done
+done
+exit 0
