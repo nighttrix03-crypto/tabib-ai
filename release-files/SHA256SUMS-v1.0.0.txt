@@ -1,3 +1,0 @@
-7f0171e684237a5273745507ebfcbb1a9562322179f4f3caf589a4bc3d5fda48  installer/dist/TabibAI-Setup.exe
-b5bb2e428a6fc14696733f53878ddd59a6833d731c80c5fc262ca8bba83179cb  dist/TabibAI.exe
-d6963bb499b86d05dda321bbcf49ae03be9ac8bb94ac202548872b1d6b8499d2  TabibAI-source.zip

@@ -2,6 +2,19 @@
 
 مساعد صحي عربي للتثقيف والمناقشة. يعمل تطبيق Windows محلياً مع MedGemma عبر Ollama، ولا يحتاج إلى مفتاح API.
 
+## 📦 هيكل المستودع
+
+| المسار | الوصف |
+|--------|-------|
+| [`tabib-ai/`](tabib-ai/) | **المشروع الكامل** — كود المصدر لكل المنصات |
+| [`tabib-ai/linux/`](tabib-ai/linux/) | نسخة Linux (Avalonia UI، .NET 10) |
+| [`tabib-ai/installer/`](tabib-ai/installer/) | مثبّت Windows (WinForms) |
+| [`tabib-ai/merged-win/`](tabib-ai/merged-win/) | نسخة Windows المدمجة + سكريبت اختصار تلقائي |
+| [`tabib-ai/deb-package/`](tabib-ai/deb-package/) | حزمة Debian مع أيقونة واختصار سطح مكتب تلقائي |
+| [`tabib-ai/MODELS.md`](tabib-ai/MODELS.md) | دليل النماذج والترميز |
+| [`FIX_SUMMARY.md`](FIX_SUMMARY.md) | توثيق إصلاح ثغرة `SelectedModelOption` |
+| [`verify_fix.py`](verify_fix.py) | سكريبت التحقق من الإصلاح |
+
 ## تنزيل Windows
 
 نزّل أحدث إصدار من صفحة [Releases](https://github.com/nighttrix03-crypto/tabib-ai/releases/latest) وشغّل `TabibAI-Setup.exe`. يثبت المعالج التطبيق في حساب المستخدم، وينشئ اختصاراً على سطح المكتب وقائمة ابدأ، وينزّل Ollama الرسمي ويتحقق من توقيعه، ثم ينزّل MedGemma بعد موافقة المستخدم على شروط Google.
@@ -36,11 +49,20 @@ Get-FileHash .\TabibAI-Setup.exe -Algorithm SHA256
 
 ## شروط MedGemma
 
-MedGemma من Google HAI-DEF. راجع [شروط الاستخدام](https://developers.google.com/health-ai-developer-foundations/terms) و[حدود النموذج](https://developers.google.com/health-ai-developer-foundations/medgemma/model-card)؛ يطلب المُثبّت موافقة المستخدم قبل تنزيل الأوزان من Ollama. لا يتضمن هذا المشروع أوزان النموذج. إشعار HAI-DEF في [NOTICE-HAI-DEF.txt](NOTICE-HAI-DEF.txt).
+MedGemma من Google HAI-DEF. راجع [شروط الاستخدام](https://developers.google.com/health-ai-developer-foundations/terms) و[حدود النموذج](https://developers.google.com/health-ai-developer-foundations/medgemma/model-card)؛ يطلب المُثبّت موافقة المستخدم قبل تنزيل الأوزان من Ollama. لا يتضمن هذا المشروع أوزان النموذج. إشعار HAI-DEF في [NOTICE-HAI-DEF.txt](tabib-ai/NOTICE-HAI-DEF.txt).
+
+## بناء Linux (Debian / Ubuntu / Mint)
+
+```bash
+sudo dpkg -i tabib-ai_1.1.0-1_amd64.deb
+sudo apt-get install -f     # لحل التبعيات إن لزم
+```
+
+الاختصار على سطح المكتب وقائمة التطبيقات **يُنشأ تلقائياً** بعد التثبيت، مع أيقونة طبية مميزة.
 
 ## بناء Windows
 
-يتطلب .NET SDK 10 وWindows PowerShell. شغّل:
+يتطلب .NET SDK 10 وWindows PowerShell. شغّل من داخل `tabib-ai/`:
 
 ```powershell
 .\build-installer.ps1
