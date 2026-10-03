@@ -29,7 +29,22 @@
 Get-FileHash .\TabibAI-Setup.exe -Algorithm SHA256
 ```
 
-قارن الناتج بسطر `TabibAI-Setup.exe` في ملف `SHA256SUMS-v1.1.0.txt` المرفق مع الإصدار. كما يتوفر `TabibAI.exe` وحده لمن يريد التشغيل دون مثبّت، و`TabibAI-source.zip` للكود المصدري.
+قارن الناتج بسطر `TabibAI-Setup.exe` في ملف `SHA256SUMS-v1.1.0.txt` المرفق مع الإصدار.
+
+> **ملاحظة:** المثبّت `TabibAI-Setup.exe` **يحتوي على `TabibAI.exe`** (يُستخرج تلقائياً أثناء التثبيت)، لذلك لا يوجد ملف EXE منفصل في الإصدار. يستخرج المثبّت التطبيق ويضعه مع اختصار على سطح المكتب وقائمة ابدأ.
+
+## تنزيل Linux (Debian / Ubuntu / Mint)
+
+نزّل `tabib-ai_1.1.0-1_amd64.deb` من صفحة [Releases](https://github.com/nighttrix03-crypto/tabib-ai/releases/latest) ثم:
+
+```bash
+sudo dpkg -i tabib-ai_1.1.0-1_amd64.deb
+sudo apt-get install -f
+```
+
+الاختصار على سطح المكتب وقائمة التطبيقات يُنشأ **تلقائياً** بعد التثبيت، مع أيقونة طبية مميزة.
+
+نموذج `gemma2-2b.gguf` (1.6 GB) مضمن داخل حزمة `.deb` ومتوفر أيضاً كأصل مستقل في نفس الإصدار.
 
 ## الموقع
 
